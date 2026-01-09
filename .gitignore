@@ -62,3 +62,7 @@ docs/_build/
 *.bak
 *.swp
 *~
+
+# Testing downloads
+*.jar
+*.jar.old

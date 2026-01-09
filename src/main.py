@@ -2,14 +2,17 @@
 import argparse
 import logging
 import sys
+import os
 from pathlib import Path
 
+from dotenv import load_dotenv
 import localtracker, fileops
 
 
 def main() -> int:
+    load_dotenv()
     p = argparse.ArgumentParser(description="Check PaperMC remote and update local jar if needed")
-    p.add_argument("--dir", "-d", default=".", type=Path, help="Directory containing the server jar")
+    p.add_argument("--dir", "-d", default=os.getenv("PAPER_DIR", "."), type=Path, help="Directory containing the server jar")
     p.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
     p.add_argument("--restore", "-r", action="store_true", help="Restore the most recent .old jar and exit")
     args = p.parse_args()

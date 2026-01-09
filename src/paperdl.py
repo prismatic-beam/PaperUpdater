@@ -1,49 +1,37 @@
-import urllib.request
-import json
 import requests
-import os
 
-class PaperDL:
-  url = "https://fill.papermc.io/v3/projects/paper/versions"
-  url_template = "/{}/builds/{}"
+PROJECT_URL = "https://fill.papermc.io/v3/projects/paper/versions"
+BUILD_URL_TEMPLATE = "https://fill.papermc.io/v3/projects/paper/versions/{}/builds/{}"
 
-  def __init__(self):
-    content = urllib.request.urlopen(PaperDL.url)
-    self.data = json.loads(content.read())
-    self.__get_dl_data()
 
-  def latest_version(self):
-    return self.data["versions"][0]["version"]["id"]
+def get_latest_version_info() -> tuple[str, int]:
+    """Returns (version_id, build_number)."""
+    resp = requests.get(PROJECT_URL)
+    resp.raise_for_status()
+    data = resp.json()
 
-  def latest_build_number(self):
-    builds = self.data["versions"][0]["builds"]
-    return builds[-1]
+    latest_ver = data["versions"][0]["version"]["id"]
+    builds = data["versions"][0]["builds"]
+    latest_build = builds[-1] # Last in the list
+    return latest_ver, latest_build
 
-  def full_url(self):
-    v = self.latest_version()
-    b = self.latest_build_number()
-    return PaperDL.url + PaperDL.url_template.format(v, b)
-  
-  def __get_dl_data(self):
-    content = urllib.request.urlopen(self.full_url())
-    self.dl_data = json.loads(content.read())
-  
-  def get_dl(self):
-    name = self.dl_data["downloads"]["server:default"]["name"]
-    url = self.dl_data["downloads"]["server:default"]["url"]
 
-    return (url, name)
-  
-  def download_latest(self, dl_location):
-    dl_data = self.get_dl()
-    url = dl_data[0]
-    filename = dl_data[1]
+def get_download_info(version: str, build: int) -> tuple[str, str]:
+    """Returns (download_url, filename)."""
+    url = BUILD_URL_TEMPLATE.format(version, build)
+    resp = requests.get(url)
+    resp.raise_for_status()
+    data = resp.json()
+    
+    dl_info = data["downloads"]["server:default"]
+    return dl_info["url"], dl_info["name"]
 
-    print(f"Downloading latest build...")
+
+def download_file(url: str, path: str) -> None:
+    """Download file from url to path."""
     with requests.get(url, stream=True) as r:
-      r.raise_for_status()
-      with open(os.path.join(dl_location + filename), 'wb') as f:
-          for chunk in r.iter_content(chunk_size=8192): 
-              f.write(chunk)
-
-    print(f"Saved to {filename}")
+        r.raise_for_status()
+        with open(path, "wb") as f:
+            for chunk in r.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    f.write(chunk)

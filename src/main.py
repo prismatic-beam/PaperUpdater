@@ -1,7 +1,45 @@
-from paperdl import PaperDL
-import os
+"""Small CLI to check and update the local PaperMC server jar."""
+import argparse
+import logging
+import sys
+from pathlib import Path
 
-dl_location = ""
+import localtracker, fileops
 
-paperdl = PaperDL()
-paperdl.download_latest(dl_location)
+
+def main() -> int:
+    p = argparse.ArgumentParser(description="Check PaperMC remote and update local jar if needed")
+    p.add_argument("--dir", "-d", default=".", type=Path, help="Directory containing the server jar")
+    p.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
+    p.add_argument("--restore", "-r", action="store_true", help="Restore the most recent .old jar and exit")
+    args = p.parse_args()
+    dir_path: Path = args.dir # Type hint for autocomplete
+
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO, format="%(levelname)s: %(message)s")
+
+    if not dir_path.exists():
+        logging.error("Directory does not exist: %s", args.dir)
+        return 2
+
+    if args.restore:
+        try:
+            restored = fileops.restore_backup(args.dir)
+            if restored:
+                logging.info("Restored: %s", restored.name)
+            else:
+                logging.info("No backups found to restore.")
+            return 0
+        except Exception:
+            logging.exception("Restore failed")
+            return 1
+
+    if localtracker.update_server(args.dir):
+        logging.info("Server updated successfully.")
+    else:
+        logging.info("Server is up to date.")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -3,10 +3,10 @@ name = "paperupdater"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "Your Name",email = "you@example.com"}
+    {name = "Gabriel",email = "29751447+prismatic-beam@users.noreply.github.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.13"
 dependencies = [
     "requests (>=2.32.5,<3.0.0)",
     "python-dotenv (>=1.2.1,<2.0.0)"

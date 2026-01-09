@@ -10,7 +10,12 @@ import localtracker, fileops
 
 
 def main() -> int:
-    load_dotenv()
+    # Get the directory where main.py is located (src/)
+    script_dir = Path(__file__).resolve().parent
+    # Look for .env in the parent directory of src/
+    dotenv_path = script_dir.parent / '.env'
+
+    load_dotenv(dotenv_path=dotenv_path)
     p = argparse.ArgumentParser(description="Check PaperMC remote and update local jar if needed")
     p.add_argument("--dir", "-d", default=os.getenv("PAPER_DIR", "."), type=Path, help="Directory containing the server jar")
     p.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
